@@ -99,7 +99,6 @@ function submitData(){
 
 }
 
-let name = "Samsul"
 
 
 
