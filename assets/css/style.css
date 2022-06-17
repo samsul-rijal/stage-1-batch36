@@ -1,0 +1,111 @@
+body{
+    margin: 0;
+}
+
+nav {
+    background-color: rgb(206, 204, 204);
+    display: flex;
+    height: 7vh;
+}
+
+nav .nav-left {
+    /* background-color:blueviolet; */
+    display: flex;
+    padding-left: 100px;
+    flex: 50%;
+    align-items: center;
+}
+
+nav .nav-left li {
+    display: inline;
+}
+
+nav .nav-left ul {
+    display: flex;
+    align-items: center;
+}
+
+nav .nav-left ul li a {
+    color: black;
+    text-decoration: none;
+    padding: 15px;
+}
+
+nav .nav-right {
+    display: flex;
+    flex: 50%;
+    justify-content: flex-end;
+    align-items: center;
+    padding-right: 100px;
+}
+
+nav .nav-right a {
+    background-color: orangered;
+    color: white;
+    /* padding-left: 25px;
+    padding-right: 25px;
+    padding-top: 8px;
+    padding-bottom: 8px; */
+    padding: 8px 25px;
+    text-decoration: none;
+    border-radius: 5px;
+}
+
+.container {
+    display: flex;
+    height: 93vh;
+    justify-content: center;
+    align-items: center;
+    /* background-color: aquamarine; */
+}
+
+.section {
+    display: flex;
+    width: 85%;
+}
+
+.left {
+    /* background-color: aqua; */
+    flex: 30%
+}
+
+.right {
+    /* background-color: brown; */
+    flex: 70%;
+    padding-left: 40px;
+}
+
+.right p {
+    color: grey;
+}
+
+
+.skill-container {
+    display: flex;
+}
+
+.skill-container div {
+    flex: 1;
+    padding: 10px;
+}
+
+.skill-container img {
+    width: 50px;
+}
+
+.social-media {
+    font-size: 30px;
+}
+
+.social-media i {
+    margin-right: 8px;
+}
+
+
+
+/* @media screen and (max-width: 480px) {
+    .container {
+        background-color: crimson;
+        flex-direction: column;
+    }
+} */
