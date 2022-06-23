@@ -39,7 +39,7 @@ nav .nav-right {
     padding-right: 100px;
 }
 
-nav .nav-right a {
+nav .nav-right .btn-contact {
     background-color: orangered;
     color: white;
     /* padding-left: 25px;
@@ -49,6 +49,12 @@ nav .nav-right a {
     padding: 8px 25px;
     text-decoration: none;
     border-radius: 5px;
+}
+
+.btn-auth {
+    margin: 0 12px;
+    text-decoration: none;
+    color: black;
 }
 
 .container {

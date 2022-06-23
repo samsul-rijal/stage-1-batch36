@@ -1,29 +1,48 @@
 const express = require('express')
 
+const bcrypt = require('bcrypt')
+const session = require('express-session')
+const flash = require('express-flash')
+
+const db = require('./connection/db')
+
 const app = express()
 const port = 8000
 
-const db = require('./connection/db')
+app.use(flash())
+
+app.use(session({
+    secret: 'bebasapaaja',
+    resave: false,
+    saveUninitialized: true,
+    cookie: { 
+        maxAge: 2 * 60 * 60 * 1000 // 2 JAM
+     }
+}))
+
+
 
 app.set('view engine', 'hbs') // set view engine hbs
 
 app.use('/assets', express.static(__dirname + '/assets')) 
 app.use(express.urlencoded({extended: false}))
 
-let isLogin = true
+// let isLogin = true
 
 db.connect(function(err, client, done){
     if (err) throw err // menampilkan error koneksi database
 
     app.get('/', function(request, response){
-        response.render('index')
+        response.render('index', {user: request.session.user, isLogin: request.session.isLogin})
     })
     
     app.get('/contact', function(request, response){
-        response.render('contact')
+        response.render('contact', {user: request.session.user, isLogin: request.session.isLogin})
     })
     
     app.get('/blog', function(request, response){
+
+            // console.log(request.session);
 
             client.query('SELECT * FROM tb_blog', function(err, result){
                 if (err) throw err
@@ -34,11 +53,11 @@ db.connect(function(err, client, done){
                     return {
                         ...item,
                         post_at: getFullTime(item.post_at),
-                        isLogin
+                        isLogin: request.session.isLogin
                     }
                 })
 
-                response.render('blog',{isLogin, blogs: dataBlog})
+                response.render('blog',{blogs: dataBlog, user: request.session.user, isLogin: request.session.isLogin})
             })
 
     })
@@ -66,6 +85,11 @@ db.connect(function(err, client, done){
     })
 
     app.get('/add-blog', function(request, response){
+        if(!request.session.user){
+            request.flash('salah', 'Anda belum login!')
+            return response.redirect('/login')
+        }
+
         response.render('add-blog')
     })
 
@@ -87,6 +111,11 @@ db.connect(function(err, client, done){
 
     app.get('/delete-blog/:id', function(request, response){
 
+        if(!request.session.user){
+            request.flash('danger', 'Anda belum login!')
+            return response.redirect('/login')
+        }
+
         const id = request.params.id
         const query = `DELETE FROM public.tb_blog WHERE id=${id};`
 
@@ -95,6 +124,81 @@ db.connect(function(err, client, done){
 
             response.redirect('/blog')
         })
+    })
+
+
+    app.get('/register', function(req,res){
+        res.render('register')
+    })
+
+    app.post('/register', function(req,res){
+        // let data = req.body
+        let {inputName, inputEmail, inputPassword} = req.body
+
+        const hashedPassword = bcrypt.hashSync(inputPassword, 10)
+        // console.log(inputPassword);
+        // console.log(hashedPassword);
+
+        const query = `INSERT INTO tb_user(name, email, password)
+        VALUES ('${inputName}', '${inputEmail}', '${hashedPassword}');`
+
+        client.query(query, function(err, result){
+            if(err) throw err
+
+            res.redirect('/login')
+        })
+
+    })
+
+    app.get('/login', function(req,res){
+        res.render('login')
+    })
+
+    app.post('/login', function(req,res){
+
+        let {inputEmail, inputPassword} = req.body
+
+        const query = `SELECT * FROM tb_user WHERE email='${inputEmail}'`
+
+        client.query(query, function(err, result){
+            if(err) throw err
+
+            console.log(result.rows);
+
+            if(result.rows.length == 0){
+                req.flash('danger', 'Email belum terdaftar')
+                return res.redirect('/login')
+            }
+
+            const isMatch = bcrypt.compareSync(inputPassword, result.rows[0].password)
+            console.log(isMatch);
+
+            if(isMatch){
+                // console.log('Login berhasil');
+                // Memasukan data kedalam session
+                req.session.isLogin = true
+                req.session.user = {
+                    id: result.rows[0].id,
+                    name: result.rows[0].name,
+                    email: result.rows[0].email,
+                }
+
+                req.flash('success', 'Login Success')
+                res.redirect('/blog')
+
+            } else {
+                // console.log('Password salah');
+                req.flash('danger', 'Password tidak cocok!')
+                res.redirect('login')
+            }
+        })
+
+    })
+
+    app.get('/logout', function(req,res){
+        req.session.destroy()
+
+        res.redirect('/blog')
     })
 
 })

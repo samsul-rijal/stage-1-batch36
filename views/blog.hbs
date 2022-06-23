@@ -22,13 +22,28 @@
         </ul>
       </div>
       <div class="right-side">
-        <a href="/contact"> Contact Me </a>
+        
+
+        {{#if isLogin}}
+          <a href="#" class="btn-auth">Hallo, {{user.name}}</a>
+          <a href="/logout" class="btn-auth">Logout</a>  
+        {{else}}
+          <a href="/register" class="btn-auth">Register</a>
+          <a href="/login" class="btn-auth">Login</a>
+        {{/if}}
+
+
+        <a href="/contact" class="btn-contact"> Contact Me </a>
       </div>
     </nav>
 
     <!-- Blog -->
     <!-- Form -->
     <div class="blog">
+
+      {{#if messages.success}}
+        <h5>{{messages.success}}</h5>
+      {{/if}}
 
       {{#if isLogin}}
       <div style="text-align: right; margin-right: 160px; margin-top:50px">

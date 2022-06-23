@@ -23,7 +23,16 @@
         </div>
 
         <div class="nav-right">
-            <a href="/contact">Contact</a>
+            {{#if isLogin}}
+                <a href="#" class="btn-auth">Hallo, {{user.name}}</a>
+                <a href="/logout" class="btn-auth">Logout</a>  
+            {{else}}
+                <a href="/register" class="btn-auth">Register</a>
+                <a href="/login" class="btn-auth">Login</a>
+            {{/if}}
+
+
+            <a href="/contact" class="btn-contact">Contact</a>
         </div>
     </nav>
     
