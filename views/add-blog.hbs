@@ -32,7 +32,7 @@
     <div class="container-fluid d-flex align-items-center justify-content-center">
         <div class="container-form">
             <h2 class="text-center mb-5">Create Blog Post</h2>
-            <form action="/add-blog/{{index}}" method="POST">
+            <form action="/add-blog/{{index}}" method="POST" enctype="multipart/form-data">
                 <div class="mb-3">
                   <label for="inputTitle" class="form-label">Title</label>
                   <input type="text" class="form-control" id="inputTitle" name="inputTitle">

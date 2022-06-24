@@ -5,9 +5,10 @@ const session = require('express-session')
 const flash = require('express-flash')
 
 const db = require('./connection/db')
+const upload = require('./middlewares/fileUpload')
 
 const app = express()
-const port = 8000
+const port = process.env.PORT || 8000
 
 app.use(flash())
 
@@ -20,11 +21,10 @@ app.use(session({
      }
 }))
 
-
-
 app.set('view engine', 'hbs') // set view engine hbs
 
 app.use('/assets', express.static(__dirname + '/assets')) 
+app.use('/uploads', express.static(__dirname + '/uploads')) 
 app.use(express.urlencoded({extended: false}))
 
 // let isLogin = true
@@ -44,7 +44,10 @@ db.connect(function(err, client, done){
 
             // console.log(request.session);
 
-            client.query('SELECT * FROM tb_blog', function(err, result){
+            const query = `SELECT tb_blog.id, tb_blog.author_id, tb_user.name as author, tb_blog.title, tb_blog.image, tb_blog.content, tb_blog.post_at
+            FROM tb_blog LEFT JOIN tb_user ON tb_blog.author_id = tb_user.id ORDER BY id DESC`
+
+            client.query(query, function(err, result){
                 if (err) throw err
                 // console.log(result.rows);
                 let data = result.rows
@@ -57,7 +60,18 @@ db.connect(function(err, client, done){
                     }
                 })
 
-                response.render('blog',{blogs: dataBlog, user: request.session.user, isLogin: request.session.isLogin})
+                let filterBlog
+                if(request.session.user){
+                    filterBlog = dataBlog.filter(function(item) {
+                        return item.author_id === request.session.user.id
+                    })
+                    // console.log(filterBlog);
+                }
+
+                let resultBlog = request.session.user ? filterBlog : dataBlog 
+                // console.log(resultBlog);
+
+                response.render('blog',{blogs: resultBlog, user: request.session.user, isLogin: request.session.isLogin})
             })
 
     })
@@ -93,13 +107,14 @@ db.connect(function(err, client, done){
         response.render('add-blog')
     })
 
-    app.post('/add-blog', function(request, response){
+    app.post('/add-blog', upload.single('inputImage'), function(request, response){
 
         const data = request.body
-        // console.log(data);
+        const authorId = request.session.user.id
+        const image = request.file.filename
 
-        const query = `INSERT INTO tb_blog(title, image, content, social_media)
-        VALUES ('${data.inputTitle}','${data.inputImage}','${data.inputContent}','{"tiktok","instagram"}');`
+        const query = `INSERT INTO tb_blog(title, image, content, social_media, author_id)
+        VALUES ('${data.inputTitle}','${image}','${data.inputContent}','{"tiktok","instagram"}', '${authorId}');`
 
         client.query(query, function(err, result){
             if(err) throw err
@@ -163,15 +178,12 @@ db.connect(function(err, client, done){
         client.query(query, function(err, result){
             if(err) throw err
 
-            console.log(result.rows);
-
             if(result.rows.length == 0){
                 req.flash('danger', 'Email belum terdaftar')
                 return res.redirect('/login')
             }
 
             const isMatch = bcrypt.compareSync(inputPassword, result.rows[0].password)
-            console.log(isMatch);
 
             if(isMatch){
                 // console.log('Login berhasil');
